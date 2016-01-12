@@ -313,7 +313,7 @@ class S3Connection(AWSAuthConnection):
         if max_content_length:
             conditions.append('["content-length-range", 0, %i]' % max_content_length)
 
-        if self.provider.security_token:
+        if query_auth and self.provider.security_token:
             fields.append({'name': 'x-amz-security-token',
                            'value': self.provider.security_token})
             conditions.append('{"x-amz-security-token": "%s"}' % self.provider.security_token)
@@ -377,7 +377,7 @@ class S3Connection(AWSAuthConnection):
     def generate_url(self, expires_in, method, bucket='', key='', headers=None,
                      query_auth=True, force_http=False, response_headers=None,
                      expires_in_absolute=False, version_id=None):
-        if self._auth_handler.capability[0] == 'hmac-v4-s3':
+        if query_auth and self._auth_handler.capability[0] == 'hmac-v4-s3':
             # Handle the special sigv4 case
             return self.generate_url_sigv4(expires_in, method, bucket=bucket,
                 key=key, headers=headers, force_http=force_http,
@@ -398,7 +398,7 @@ class S3Connection(AWSAuthConnection):
         if response_headers:
             for k, v in response_headers.items():
                 extra_qp.append("%s=%s" % (k, urllib.parse.quote(v)))
-        if self.provider.security_token:
+        if query_auth and self.provider.security_token:
             headers['x-amz-security-token'] = self.provider.security_token
         if extra_qp:
             delimiter = '?' if '?' not in auth_path else '&'
